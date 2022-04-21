@@ -25,6 +25,6 @@ template = "./changelog.tera"
 remote = "github.com"
 owner = "eviweb"
 repository = "qa-tools"
-authors = [{ signature = "Eric VILLARD", username = "eviweb" }]
+authors = [{ signature = "Eric Villard", username = "eviweb" }]
 
 [bump_profiles]
