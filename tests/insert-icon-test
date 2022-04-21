@@ -1,0 +1,102 @@
+#! /usr/bin/env bash
+tests_dir()
+{
+    dirname "$(readlink -f "${BASH_SOURCE}")"
+}
+
+lib_dir()
+{
+    echo "$(tests_dir)/lib"
+}
+
+fixtures_dir()
+{
+    echo "$(tests_dir)/fixtures"
+}
+
+bin_dir()
+{
+    local dir="$(dirname "$(tests_dir)")"
+
+    echo "${dir}/bin"
+}
+
+. "$(lib_dir)"/functions
+
+declare -A messages_noscope=(
+    ["access: lorem ipsum dolor sit amet"]="access: ♿ lorem ipsum dolor sit amet"
+    ["build: lorem ipsum dolor sit amet"]="build: 📦 lorem ipsum dolor sit amet"
+    ["chore: lorem ipsum dolor sit amet"]="chore: 🧹 lorem ipsum dolor sit amet"
+    ["ci: lorem ipsum dolor sit amet"]="ci: 👷 lorem ipsum dolor sit amet"
+    ["config: lorem ipsum dolor sit amet"]="config: ⚙️  lorem ipsum dolor sit amet"
+    ["deprecate: lorem ipsum dolor sit amet"]="deprecate: ⚠️ lorem ipsum dolor sit amet"
+    ["docs: lorem ipsum dolor sit amet"]="docs: 📚 lorem ipsum dolor sit amet"
+    ["feat: lorem ipsum dolor sit amet"]="feat: ✨ lorem ipsum dolor sit amet"
+    ["fix: lorem ipsum dolor sit amet"]="fix: 🐛 lorem ipsum dolor sit amet"
+    ["init: lorem ipsum dolor sit amet"]="init: 🎉 lorem ipsum dolor sit amet"
+    ["lang: lorem ipsum dolor sit amet"]="lang: 🌐 lorem ipsum dolor sit amet"
+    ["merge: lorem ipsum dolor sit amet"]="merge: 📥 lorem ipsum dolor sit amet"
+    ["metadata: lorem ipsum dolor sit amet"]="metadata: 📇 lorem ipsum dolor sit amet"
+    ["perf: lorem ipsum dolor sit amet"]="perf: ⚡ lorem ipsum dolor sit amet"
+    ["refactor: lorem ipsum dolor sit amet"]="refactor: ♻️  lorem ipsum dolor sit amet"
+    ["release: lorem ipsum dolor sit amet"]="release: 🎁 lorem ipsum dolor sit amet"
+    ["remove: lorem ipsum dolor sit amet"]="remove: 🗑️ lorem ipsum dolor sit amet"
+    ["revert: lorem ipsum dolor sit amet"]="revert: ⏪ lorem ipsum dolor sit amet"
+    ["secfix: lorem ipsum dolor sit amet"]="secfix: 🔒 lorem ipsum dolor sit amet"
+    ["style: lorem ipsum dolor sit amet"]="style: 🎨 lorem ipsum dolor sit amet"
+    ["tag: lorem ipsum dolor sit amet"]="tag: 🔖 lorem ipsum dolor sit amet"
+    ["test: lorem ipsum dolor sit amet"]="test: ✅ lorem ipsum dolor sit amet"
+    ["tool: lorem ipsum dolor sit amet"]="tool: 🔧 lorem ipsum dolor sit amet"
+    ["wip: lorem ipsum dolor sit amet"]="wip: 🚧 lorem ipsum dolor sit amet"
+)
+
+declare -A messages_scope=(
+    ["access(scope): lorem ipsum dolor sit amet"]="access(scope): ♿ lorem ipsum dolor sit amet"
+    ["build(scope): lorem ipsum dolor sit amet"]="build(scope): 📦 lorem ipsum dolor sit amet"
+    ["chore(scope): lorem ipsum dolor sit amet"]="chore(scope): 🧹 lorem ipsum dolor sit amet"
+    ["ci(scope): lorem ipsum dolor sit amet"]="ci(scope): 👷 lorem ipsum dolor sit amet"
+    ["config(scope): lorem ipsum dolor sit amet"]="config(scope): ⚙️  lorem ipsum dolor sit amet"
+    ["deprecate(scope): lorem ipsum dolor sit amet"]="deprecate(scope): ⚠️ lorem ipsum dolor sit amet"
+    ["docs(scope): lorem ipsum dolor sit amet"]="docs(scope): 📚 lorem ipsum dolor sit amet"
+    ["feat(scope): lorem ipsum dolor sit amet"]="feat(scope): ✨ lorem ipsum dolor sit amet"
+    ["fix(scope): lorem ipsum dolor sit amet"]="fix(scope): 🐛 lorem ipsum dolor sit amet"
+    ["init(scope): lorem ipsum dolor sit amet"]="init(scope): 🎉 lorem ipsum dolor sit amet"
+    ["lang(scope): lorem ipsum dolor sit amet"]="lang(scope): 🌐 lorem ipsum dolor sit amet"
+    ["merge(scope): lorem ipsum dolor sit amet"]="merge(scope): 📥 lorem ipsum dolor sit amet"
+    ["metadata(scope): lorem ipsum dolor sit amet"]="metadata(scope): 📇 lorem ipsum dolor sit amet"
+    ["perf(scope): lorem ipsum dolor sit amet"]="perf(scope): ⚡ lorem ipsum dolor sit amet"
+    ["refactor(scope): lorem ipsum dolor sit amet"]="refactor(scope): ♻️  lorem ipsum dolor sit amet"
+    ["release(scope): lorem ipsum dolor sit amet"]="release(scope): 🎁 lorem ipsum dolor sit amet"
+    ["remove(scope): lorem ipsum dolor sit amet"]="remove(scope): 🗑️ lorem ipsum dolor sit amet"
+    ["revert(scope): lorem ipsum dolor sit amet"]="revert(scope): ⏪ lorem ipsum dolor sit amet"
+    ["secfix(scope): lorem ipsum dolor sit amet"]="secfix(scope): 🔒 lorem ipsum dolor sit amet"
+    ["style(scope): lorem ipsum dolor sit amet"]="style(scope): 🎨 lorem ipsum dolor sit amet"
+    ["tag(scope): lorem ipsum dolor sit amet"]="tag(scope): 🔖 lorem ipsum dolor sit amet"
+    ["test(scope): lorem ipsum dolor sit amet"]="test(scope): ✅ lorem ipsum dolor sit amet"
+    ["tool(scope): lorem ipsum dolor sit amet"]="tool(scope): 🔧 lorem ipsum dolor sit amet"
+    ["wip(scope): lorem ipsum dolor sit amet"]="wip(scope): 🚧 lorem ipsum dolor sit amet"
+)
+
+declare -A messages_amended=(
+    ["chore: 🧹 lorem ipsum dolor sit amet"]="chore: 🧹 lorem ipsum dolor sit amet"
+    ["chore(scope): 🧹 lorem ipsum dolor sit amet"]="chore(scope): 🧹 lorem ipsum dolor sit amet"
+)
+
+echo -e "\e[1mInsert Icon Tests\e[21m:"
+echo -e "\n> Test messages without scope:"
+for message in "${!messages_noscope[@]}"; do
+    assert_equals "${messages_noscope["${message}"]}" "$("$(bin_dir)"/insert-icon "${message}")"
+done
+
+echo -e "\n> Test messages with scope:"
+for message in "${!messages_scope[@]}"; do
+    assert_equals "${messages_scope["${message}"]}" "$("$(bin_dir)"/insert-icon "${message}")"
+done
+
+echo -e "\n> Test message with body:"
+assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG | "$(bin_dir)"/insert-icon)"
+
+echo -e "\n> Test amended messages:"
+for message in "${!messages_amended[@]}"; do
+    assert_equals "${messages_amended["${message}"]}" "$("$(bin_dir)"/insert-icon "${message}")"
+done
