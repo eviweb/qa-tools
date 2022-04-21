@@ -1,0 +1,72 @@
+[commit_type_icons]
+# Accessibility
+access = "♿"
+
+# Build configuration
+build = "📦"
+
+# Other changes
+chore = "🧹"
+
+# Continuous integration configuration
+ci = "👷"
+
+# Configuration
+config = "⚙️ "
+
+# Deprecation
+deprecate = "⚠️"
+
+# Documentation
+docs = "📚"
+
+# New feature
+feat = "✨"
+
+# Bug fix
+fix = "🐛"
+
+# Initial Commit
+init = "🎉"
+
+# Language, Internationalization
+lang = "🌐"
+
+# Branch merge
+merge = "📥"
+
+# Metadata
+metadata = "📇"
+
+# Performance optimization
+perf = "⚡"
+
+# Refactoring
+refactor = "♻️ "
+
+# Version releasing
+release = "🎁"
+
+# Removal
+remove = "🗑️"
+
+# Commit reversion
+revert = "⏪"
+
+# Security fix
+secfix = "🔒"
+
+# Cosmetic
+style = "🎨"
+
+# version tag
+tag = "🔖"
+
+# Test addition or correction
+test = "✅"
+
+# Tool integration
+tool = "🔧"
+
+# Work In Progress
+wip = "🚧"

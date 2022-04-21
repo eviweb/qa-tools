@@ -1,0 +1,25 @@
+ignore_merge_commits = false
+branch_whitelist = []
+pre_bump_hooks = []
+post_bump_hooks = []
+
+[commit_types]
+access = { changelog_title = "Accessibility" }
+config = { changelog_title = "Configuration" }
+deprecate = { changelog_title = "Deprecation" }
+init = { changelog_title = "Initialization" }
+lang = { changelog_title = "Language & Internationalization" }
+merge = { changelog_title = "Merging" }
+metadata = { changelog_title = "Metadata" }
+release = { changelog_title = "Release version" }
+remove = { changelog_title = "Removal" }
+secfix = { changelog_title = "Security fix" }
+tool = { changelog_title = "Tooling" }
+tag = { changelog_title = "Version tag" }
+wip = { changelog_title = "Work In Progress (WIP)" }
+
+[changelog]
+path = "CHANGELOG.md"
+authors = [{ signature = "Eric VILLARD", username = "eviweb" }]
+
+[bump_profiles]
