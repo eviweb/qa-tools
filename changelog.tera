@@ -1,3 +1,4 @@
+
 {% if version.tag and from.tag -%}
     ## [{{ version.tag }}]({{repository_url ~ "/compare/" ~ from.tag ~ ".." ~ version.tag}}) - {{ date | date(format="%Y-%m-%d") }}
 {% elif version.tag and from.id -%}
@@ -12,9 +13,9 @@
     ## Unreleased ([{{ from_shorthand ~ ".." ~ to_shorthand }}]({{repository_url ~ "/compare/" ~ from_shorthand ~ ".." ~ to_shorthand}}))
 {% endif -%}
 
-{% for type, typed_commits in commits | sort(attribute="type")| group_by(attribute="type")-%}
-
+{% for type, typed_commits in commits | sort(attribute="type")| group_by(attribute="type") %}
 ### {{ type | upper_first }}
+
 {% for scope, scoped_commits in typed_commits | group_by(attribute="scope") -%}
 
 {% for commit in scoped_commits | sort(attribute="scope") -%}
