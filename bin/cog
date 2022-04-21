@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+main()
+{
+    dirname "$(dirname "$(readlink -f "${BASH_SOURCE}")")"
+}
+
+COG="$(main)"/vendor/cocogitto/cog
+
+cd "$(main)"
+"${COG}" "$@"
+cd "${OLDPWD}"
