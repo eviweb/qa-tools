@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+main()
+{
+    dirname "$(dirname "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE}")")")")"
+}
+
+bin()
+{
+    echo "$(main)/bin"
+}
+
+COMMIT_MSG_FILE="$1"
+MESSAGE="$(cat "${COMMIT_MSG_FILE}")"
+
+if "$(bin)"/cog verify "${MESSAGE}"; then
+    echo "${MESSAGE}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
+
+else 
+    echo "See https://www.conventionalcommits.org/en/v1.0.0"
+    exit 1
+fi
