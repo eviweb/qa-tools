@@ -27,8 +27,10 @@ HEADER="$(echo "${MESSAGE}" | head -n 1)"
 TYPE="$(echo "${HEADER}" | grep -Poe '^[^(:]+')"
 ICON="${INI_commit_type_icons["${TYPE}"]}"
 
-if ! echo "${HEADER}" | grep "${ICON}"; then
+if ! echo "${HEADER}" | grep "${ICON}" &>/dev/null; then
     NEW_HEADER="$(echo "${HEADER}" | sed -re "s/(${TYPE}[^:]*):\s+/\1: ${ICON} /")"
 
     echo "${MESSAGE}" | sed -e "1 s/${HEADER}/${NEW_HEADER}/"
+else
+    echo "${MESSAGE}"
 fi
