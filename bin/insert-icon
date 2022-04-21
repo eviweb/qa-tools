@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+
+bin()
+{
+    dirname "$(readlink -f "${BASH_SOURCE}")"
+}
+
+main()
+{
+    dirname "$(bin)"
+}
+
+get_input()
+{
+    if test ! -t 0; then
+        cat
+    else
+        echo "$1"
+    fi
+}
+
+CONFIG="$(main)/config.toml"
+eval "$("$(bin)"/parse-ini "${CONFIG}")"
+
+MESSAGE="$(get_input "$1")"
+HEADER="$(echo "${MESSAGE}" | head -n 1)"
+TYPE="$(echo "${HEADER}" | grep -Poe '^[^(:]+')"
+ICON="${INI_commit_type_icons["${TYPE}"]}"
+
+if ! echo "${HEADER}" | grep "${ICON}"; then
+    NEW_HEADER="$(echo "${HEADER}" | sed -re "s/(${TYPE}[^:]*):\s+/\1: ${ICON} /")"
+
+    echo "${MESSAGE}" | sed -e "1 s/${HEADER}/${NEW_HEADER}/"
+fi
