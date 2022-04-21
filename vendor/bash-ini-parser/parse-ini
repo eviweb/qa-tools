@@ -1,0 +1,540 @@
+#!/bin/bash
+# Bash INI file parser v0.1.1.
+# Copyright (C) 2019 Darren 'Tadgy' Austin <darren (at) afterdark.org.uk>.
+# Licensed under the terms of the GNU General Public Licence version 3.
+#
+# This program comes with ABSOLUTELY NO WARRANTY.  For details and a full copy of
+# the license terms, see: <http://gnu.org/licenses/gpl.html>.  This is free
+# software - you can modify and redistribute it under the terms of the GPL v3.
+
+
+parser_getopts() {
+  while [[ ! -z "$1" ]]; do
+    case "$1" in
+      -b|-bound|--bound)
+          if [[ -z "$2" ]]; then
+            echo "${0##*/}: bound (-b) cannot be an empty value" >&2
+            return 1
+          elif ((${#2} > 1)); then
+            echo "${0##*/}: bound (-b) must be a single character" >&2
+            return 1
+          else
+            KEYVALUE_DELIM="$2"
+          fi
+          shift
+        ;;
+      -c|-check)
+          CHECK_ONLY="1"
+        ;;
+      -d|-delim|--delim)
+          if [[ -z "$2" ]]; then
+            VARIABLE_DELIM=""
+            DELIM_SET=1
+          elif [[ -z "$VARIABLE_PREFIX" ]] && [[ "${2:0:1}" =~ [[:digit:]] ]]; then
+            echo "${0##*/}: delim (-d) cannot begin with a number when prefix (-p) is empty" >&2
+            return 1
+          elif [[ "$2" =~ [^[:alnum:]_] ]]; then
+            echo "${0##*/}: invalid characters in delim (-d) - alphanumerics and _ only" >&2
+            return 1
+          else
+            VARIABLE_DELIM="$2"
+            DELIM_SET=1
+          fi
+          shift
+        ;;
+      -duplicates-merge|--duplicates-merge)
+          DUPLICATES_MERGE=1
+        ;;
+      -e|-export|--export)
+          DECLARE_SCOPE="-x"
+        ;;
+      -global-name|--global-name)
+          if [[ -z "$2" ]]; then
+            echo "${0##*/}: global name (--global-name) cannot be an empty value" >&2
+            return 1
+          elif [[ "${2:0:1}" =~ [[:digit:]] ]]; then
+            echo "${0##*/}: global name (--global-name) cannot begin with a number" >&2
+            return 1
+          elif [[ "$2" =~ [^[:alnum:]_] ]]; then
+            echo "${0##*/}: only alphanumerics and _ allowed for global name (--global-name)" >&2
+            return 1
+          else
+            CURRENT_SECTION="$2"
+          fi
+          shift
+        ;;
+      -h|-\?|-help|--help)
+          parser_help
+          return 2
+        ;;
+      -l|-local|--local)
+          DECLARE_SCOPE="-l"
+        ;;
+      -lowercase|--lowercase)
+          CONVERT_CASE="-1"
+        ;;
+      -no-booleans|--no-booleans)
+          USE_BOOLEANS="0"
+        ;;
+      -no-squash|--no-squash)
+          SQUASH_SPACES=0
+        ;;
+      -p|-prefix|--prefix)
+          if [[ -z "$2" ]]; then
+            if [[ "${VARIABLE_DELIM:0:1}" =~ [[:digit:]] ]]; then
+              echo "${0##*/}: prefix (-p) cannot be empty if delim (-d) begins with a number" >&2
+              return 1
+            else
+              VARIABLE_PREFIX=""
+              if ((DELIM_SET == 0)); then
+                VARIABLE_DELIM=""
+              fi
+            fi
+          elif [[ "${2:0:1}" =~ [[:digit:]] ]]; then
+            echo "${0##*/}: prefix (-p) cannot begin with a number" >&2
+            return 1
+          elif [[ "$2" =~ [^[:alnum:]_] ]]; then
+            echo "${0##*/}: only alphanumerics and _ allowed for prefix (-p)" >&2
+            return 1
+          else
+            VARIABLE_PREFIX="$2"
+          fi
+          shift
+        ;;
+      -repeat-sections|--repeat-sections)
+          REPEAT_SECTIONS="1"
+        ;;
+      -textual-booleans|--textual-booleans)
+          TEXTUAL_BOOLEANS="1"
+        ;;
+      -uppercase|--uppercase)
+          CONVERT_CASE="1"
+        ;;
+      -v|-version|--version)
+          parser_version
+          return 2
+        ;;
+      --)
+          shift
+          break
+        ;;
+      --*|-*)
+          echo "${0##*/}: invalid option: $1" >&2
+          return 1
+        ;;
+      *)
+          break
+        ;;
+    esac
+    shift
+  done
+
+  # Make sure we have an INI file after all the options are removed.
+  if (($# == 0)) || (($# > 1)) || [[ -z "$1" ]]; then
+    echo "Usage: ${0##*/} [options] <INI file>" >&2
+    echo "Try: ${0##*/} --help" >&2
+    return 1
+  else
+    INIFILE="$1"
+  fi
+}
+
+
+parser_help() {
+        #........1.........2.........3.........4.........5.........6.........7.........8
+  cat <<-EOF
+	Usage: ${0##*/} [options] <INI file|->
+	Parse an INI-style file into array assignments which can be 'eval'ed into Bash.
+	Example usage in bash script: eval "\$(${0##*/} example.ini)"
+
+	Commonly used options:
+	  -b <char>, --bound <char>
+	      The bound character which delimits the key from the value in a property
+	      line of the INI file.  The default is "=".  This must be a single
+	      character and cannot be an empty value.
+	  -c, --check
+	      Check (validate) the INI file by running it through the parser.  Testing
+	      the INI file will report any problems or syntax errors detected in the
+	      file to stderr, but will not output the array declarations.
+	  -d <char(s)>, --delim <char(s)>
+	      The character(s) (which may be an empty value) to use as a delimiter
+	      between the prefix and section name when declaring the arrays.  The
+	      default is "_", except when '-p' is set to an empty value, in which case
+	      the default is also empty.  Only alphanumerics and _ may be used with
+	      this option, and it may not begin with a number if '-p' is empty.  The
+	      delimiter may be converted to upper or lower case depending upon the use
+	      of '--uppercase' or '--lowercase'.
+	  -e, --export
+	      When declaring the arrays, export them to the environment.
+	  -h, -?, --help
+	      Show (this) help.
+	  -l, --local
+	      Declare the arrays as being local in scope, instead of the default of
+	      global scope.
+	  -p <prefix>, --prefix <prefix>
+	      The prefix of all the variables set when declaring the arrays.  The
+	      default is "INI".  An empty prefix (denoted by "") implies '-d ""', but
+	      this can be overridden by explicitly specifying a delimiter with '-d'.
+	      Only alphanumerics and "_" may be used with this option, and it may not be
+	      empty when delim ('-d') begins with a number.  The prefix may be converted
+	      to upper or lower case depending upon the use of '--uppercase' or
+	      '--lowercase'.
+	  -v, --version
+	      Show version and copyright information.
+
+	Lesser used options:
+	  --duplicates-merge
+	      If a duplicate key for a specific section is found, the normal behaviour
+	      is to have the latter instance of the key overwrite the value of the
+	      earlier.  With this option, the keys are merged, and a new, concatinated,
+	      value will result.  The concatinated values are not separated by any
+	      characters.  Booleans are the exception to this behaviour, as the
+	      latter bool will always override an earlier setting.
+	  --global-name <name>
+	      The name of the 'global' section used when declaring the arrays.  Only
+	      alphanumerics and "_" may be used with this option, which cannot be empty.
+	      The name may not begin with a number, and may be converted to upper or
+	      lower case depending upon the use of '--uppercase' or '--lowercase'.  The
+	      default is "global".
+	  --lowercase
+	      When declaring the arrays, the case of the prefix ('--prefix') name,
+	      delimiter and section name is kept as per the INI file.  With this option
+	      all items are converted to lower case.  The case of the properties'
+	      keys/values is not affected.
+	  --no-booleans
+	      Normally, the parser interprites the presence of a key without an
+	      associated value as a boolean.  Keys which are proceeded by "no_" are
+	      given a boolean 'false' value, while keys without a "no_" are given a
+	      'true' value.  With this option, the presence of a key without a value is
+	      considered a syntax error in the INI file.
+	  --no-squash
+	      Do not squash multiple consecutive blanks (which are later translated to
+	      a "_") into a single space while reading section names and properties.
+	  --repeat-sections
+	      Usually, if a section is repeated in the INI file, its properties are
+	      ignored.  Using this option allows sections to be repeated in the file,
+	      but this does not affect the processing of the keys/values.  See the
+	      '--duplicates-merge' option also.
+	  --textual-booleans
+	      When declaring the arrays, boolean keys are given a value of "0" or "1"
+	      (representing 'false' and 'true' respectivly).  With this option the value
+	      of the key will be the text "false" or "true" instead.  Ignored when
+	      '--no-booleans' is in use.
+	  --uppercase
+	      When declaring the arrays, the case of the prefix ('--prefix') name,
+	      delimiter and section name is kept as per the INI file.  With this option
+	      all items are converted to upper case.  The case of the properties'
+	      keys/values is not affected.
+	Option processing ceases with the first non-option argument, or "--".
+	EOF
+}
+
+
+parser_version() {
+        #........1.........2.........3.........4.........5.........6.........7.........8
+  cat <<-EOF
+	Bash INI file parser v0.1.1.
+	Copyright (C) 2019 Darren 'Tadgy' Austin <darren (at) afterdark.org.uk>.
+	Licensed under the terms of the GNU General Public Licence version 3.
+
+	This program comes with ABSOLUTELY NO WARRANTY.  For details and a full copy of
+	the license terms, see: <http://gnu.org/licenses/gpl.html>.  This is free
+	software - you can modify and redistribute it under the terms of the GPL v3.
+	EOF
+}
+
+
+parse_ini() {
+  # Bash v4.0+ is required.
+  if [[ -z "${BASH_VERSINFO[0]}" ]] || ((BASH_VERSINFO[0] < 4)); then
+    echo "${0##*/}: minimum of bash v4 required" >&2
+    return 1
+  fi
+
+  # Set defaults.
+  local ACCEPTABLE_CHARS="[:blank:][:alnum:]_.+-"	# Characters allowed in section and key names.  Must be a valid regex bracket expression.
+  local CHECK_ONLY="0"					# Whether the parser is in check or normal mode.  0 = normal mode, 1 = check mode.
+  local COMMENT_CHARS="#;"				# Characters which indicate the start of a comment line.
+  local CONVERT_CASE="0"				# Whether to keep or convert section and key names to upper or loweer case.  -1 = covert to lowercase, 0 = keep case, 1 = convert to uppercase.
+  local CONVERT_CHARS="[:blank:].+-"			# Characters from ACCEPTABLE_CHARS in section and key names that should be converted to _.  Must be a valid regex bracket expression.
+  local CURRENT_SECTION="global"			# Name used for the 'global' section of the INI file.
+  local DECLARE_SCOPE="-g"				# The scope given in the array definitions.  "-g" = global scope, "-l" = local scope, "-x" = export values.
+  local DUPLICATES_MERGE="0"				# Whether to merge latter duplicate key's values with earlier key's values.  0 = don't merge, 1 = do merge.
+  local KEYVALUE_DELIM="="				# Delimiter between key and value.  Must be a single character.
+  local REPEAT_SECTIONS="0"				# Whether to allow section names to repeat.  0 = no repeats, 1 = allow repeats.
+  local SQUASH_SPACES="1"				# Whether to squash multiple consecutive blanks into a single space.  0 = don't squash, 1 = do squash.
+  local TEXTUAL_BOOLEANS="0"				# Whether to use "false" and "true" for booleans.  0 = use "0" and "1", 1 = use "false" and "true".
+  local USE_BOOLEANS="1"				# Whether to allow the use of boolean values in the INI file.  0 = don't allow, 1 = do allow.
+  local VARIABLE_PREFIX="INI"				# Prefix for all variables.  Note: case is not changed, even with CONVERT_CASE set.
+  local VARIABLE_DELIM="_"				# Delimiter between prefix and section name, unless VARIABLE_PREFIX is empty.
+
+  # Variables.
+  local DELIM ERROR_CODE IGNORE_SECTION=0 INIFD KEY LINE LINENUMBER=0 PREFIX SECTIONS_SEEN=() SHOWN_SEC_HEAD=0 TEMP VALUE
+  declare DELIM_SET=0 INIFILE
+
+  # Parse options.
+  parser_getopts "$@"
+  TEMP=$?
+  if ((TEMP == 1)); then
+    # And error occured.
+    return 1
+  elif ((TEMP == 2)); then
+    # Help/version was showed, exit sucessfully.
+    return 0
+  fi
+
+  # If reading from stdin, don't try to open the FD as it's already open.
+  if [[ "$INIFILE" == "-" ]]; then
+    INIFD="0"
+  else
+    # File accessability checks.
+    if [[ ! -e "$INIFILE" ]]; then
+      echo "${0##*/}: no such file: $INIFILE" >&2
+      return 1
+    elif [[ ! -f "$INIFILE" ]]; then
+      echo "${0##*/}: not a regular file: $INIFILE" >&2
+      return 1
+    elif [[ ! -r "$INIFILE" ]]; then
+      echo "${0##*/}: permission denied: $INIFILE" >&2
+      return 1
+    fi
+
+    # Open the INI file for reading.
+    if ! exec {INIFD}<"$INIFILE"; then
+      echo "${0##*/}: failed to open INI file: $INIFILE" >&2
+      return 1
+    fi
+  fi
+
+  # Extglob is required.
+  shopt -s extglob
+
+  # Convert case, if required.
+  if ((CONVERT_CASE == -1)); then
+    # Covert to lowercase.
+    PREFIX="${VARIABLE_PREFIX,,}"
+    DELIM="${VARIABLE_DELIM,,}"
+    CURRENT_SECTION="${CURRENT_SECTION,,}"
+  elif ((CONVERT_CASE == 1)); then
+    # Convert to uppercase.
+    PREFIX="${VARIABLE_PREFIX^^}"
+    DELIM="${VARIABLE_DELIM^^}"
+    CURRENT_SECTION="${CURRENT_SECTION^^}"
+  else
+    # Don't convert.
+    PREFIX="$VARIABLE_PREFIX"
+    DELIM="$VARIABLE_DELIM"
+  fi
+
+  # Parse the INI file.
+  while :; do
+    LINE=""
+    # Construct a line of input to parse.
+    while :; do
+      # Read a line of input from the file descriptor.
+      # The 'read' will do the job of removing leading whitespace from the line.
+      read -r -u "$INIFD" TEMP || break 2
+      ((LINENUMBER++))
+
+      # Handle line continuations.
+      if [[ "${TEMP: -1:1}" == "\\" ]]; then
+        LINE+="${TEMP:0:-1}"
+        continue
+      else
+        LINE+="$TEMP"
+        break
+      fi
+    done
+
+    # Ignore the line if it's a comment.
+    [[ "$LINE" =~ ^[[:blank:]]*([$COMMENT_CHARS].*)*$ ]] && continue
+
+    # Strip the trailing whitespace and any \r from the line (leading whitespace has already been stripped by read).
+    LINE="${LINE/%*([[:blank:]])*([$'\r'])/}"
+
+    # Process the line.
+    if [[ "${LINE:0:1}" == "[" ]]; then		# Found the beginning of a section definition.
+      # Check the format of the section definition.
+      if [[ "${LINE: -1:1}" != "]" ]]; then
+        echo "${0##*/}: line $LINENUMBER: unmatched [ in section definition - skipping section" >&2
+        ERROR_CODE=2
+        IGNORE_SECTION=1
+        continue
+      elif [[ "${LINE:1:-1}" =~ [^$ACCEPTABLE_CHARS\[\]]* ]]; then
+        echo "${0##*/}: line $LINENUMBER: invalid characters in section definition - skipping section" >&2
+        ERROR_CODE=2
+        IGNORE_SECTION=1
+        continue
+      elif [[ -z "${LINE:1:-1}" ]] || [[ "${LINE:1:-1}" =~ ^[[:blank:]]+$ ]]; then
+        echo "${0##*/}: line $LINENUMBER: empty section definition - skipping section" >&2
+        ERROR_CODE=2
+        IGNORE_SECTION=1
+        continue
+      else
+        # Strip the []s and any whitespace between the []s and the section name.
+        LINE="${LINE/#\[*([[:space:]])/}"
+        LINE="${LINE/%*([[:space:]])\]/}"
+
+        # Squash multiple consecutive blanks into a single space.
+        ((SQUASH_SPACES == 1)) && LINE="${LINE//+([[:blank:]])/ }"
+
+        # Convert single or consecutive occurances of invalid characters into a single _.
+        # LINE="${LINE//+([$CONVERT_CHARS])/_}"
+        # Convert each occurance of invalid character into a _.
+        LINE="${LINE//@([$CONVERT_CHARS])/_}"
+        # Convert single or consecutive invalid characters into a single _ except for multiple _s already in line.
+        # LINE="${LINE//+([${CONVERT_CHARS/_//}])/_}"
+
+        # Convert case, if required.
+        if ((CONVERT_CASE == -1)); then
+          # Covert to lowercase.
+          LINE="${LINE,,}"
+        elif ((CONVERT_CASE == 1)); then
+          # Convert to uppercase.
+          LINE="${LINE^^}"
+        fi
+
+        # If the prefix and delim are both empty, the section name cannot begin with a number.
+        if [[ -z "$PREFIX" ]] && [[ -z "$DELIM" ]] && [[ "${LINE:0:1}" =~ [[:digit:]] ]]; then
+          echo "${0##*/}: line $LINENUMBER: section name cannot begin with a number when prefix (-p) and delim (-d) are both empty - skipping section" >&2
+          ERROR_CODE=2
+          IGNORE_SECTION=1
+          continue 2
+        else
+          # Keep track of the current section name.
+          CURRENT_SECTION="$LINE"
+        fi
+
+        # Should we process repeat sections?
+        if ((REPEAT_SECTIONS == 0)); then
+          for TEMP in "${SECTIONS_SEEN[@]}"; do
+            if [[ "$CURRENT_SECTION" == "$TEMP" ]]; then
+              # It's a section we've seen before - don't process it.
+              echo "${0##*/}: line $LINENUMBER: repeated section name - skipping section" >&2
+              ERROR_CODE=2
+              IGNORE_SECTION=1
+              continue 2
+            fi
+          done
+          SECTIONS_SEEN+=("$CURRENT_SECTION")
+        fi
+
+        # Reset the ignore flag.
+        IGNORE_SECTION=0
+
+        # Flag that the section header needs to be shown.
+        SHOWN_SEC_HEAD=0
+      fi
+    elif ((IGNORE_SECTION == 0)) && [[ "$LINE" != *$KEYVALUE_DELIM* ]]; then		# Process the property definition as if it's a boolean.
+      # If the value starts with a " or ' it must end with same.
+      if [[ "${LINE:0:1}" =~ [\"\'] ]]; then
+        if [[ "${LINE:0:1}" == "${VALUE: -1:1}" ]]; then
+          # Strip the quotes as they're not needed.
+          LINE="${LINE:1:-1}"
+        else
+          echo "${0##*/}: line $LINENUMBER: unmatched quotes - skipping property" >&2
+          ERROR_CODE=2
+          continue
+        fi
+      fi
+
+      # Determine the boolean value.
+      if [[ "${LINE:0:3}" == "no_" ]]; then
+        LINE="${LINE:3:${#LINE} - 1}"
+        if ((TEXTUAL_BOOLEANS == 0)); then
+          TEMP=0
+        else
+          TEMP="false"
+        fi
+      else
+        if ((TEXTUAL_BOOLEANS == 0)); then
+          TEMP=1
+        else
+          TEMP="true"
+        fi
+      fi
+
+      # Output the associative array element definition.
+      if ((USE_BOOLEANS == 1)); then
+        # If required, output the associative array declaration.
+        if ((SHOWN_SEC_HEAD == 0)); then
+          ((CHECK_ONLY == 0)) && printf "declare %s -A %s%s%s\\n" "$DECLARE_SCOPE" "$PREFIX" "$DELIM" "$CURRENT_SECTION"
+          SHOWN_SEC_HEAD=1
+        fi
+        ((CHECK_ONLY == 0)) && printf "%s%s%s['%s']='%s'\\n" "$PREFIX" "${PREFIX:+$DELIM}" "$CURRENT_SECTION" "$LINE" "$TEMP"
+      else
+        echo "${0##*/}: line $LINENUMBER: key without a value - skipping property" >&2
+        ERROR_CODE=2
+        continue
+      fi
+    elif ((IGNORE_SECTION == 0)); then		# Process the property definition as a key/value pair.
+      # Remove trailing whitespace from key part.
+      LINE="${LINE/+([[:blank:]])$KEYVALUE_DELIM/$KEYVALUE_DELIM}"
+
+      # Remove leading whitespace from value part.
+      LINE="${LINE/$KEYVALUE_DELIM+([[:blank:]])/$KEYVALUE_DELIM}"
+
+      # Extract the key and the value.
+      KEY="${LINE%%$KEYVALUE_DELIM*}"
+      VALUE="${LINE#*$KEYVALUE_DELIM}"
+
+      # Squash multiple consecutive blanks into a single space.
+      ((SQUASH_SPACES == 1)) && KEY="${KEY//+([[:blank:]])/ }"
+
+      # Escape any 's in the key name.
+      KEY="${KEY//\'/\'\\\'\'}"
+
+      # If the value starts with a " or ' it must end with same.
+      if [[ "${VALUE:0:1}" =~ [\"\'] ]]; then
+        if [[ "${VALUE:0:1}" == "${VALUE: -1:1}" ]]; then
+          # Strip the quotes as they're not needed.
+          VALUE="${VALUE:1:-1}"
+        else
+          echo "${0##*/}: line $LINENUMBER: unmatched quotes - skipping property" >&2
+          ERROR_CODE=2
+          continue
+        fi
+      fi
+
+      # If required, output the associative array declaration.
+      if ((SHOWN_SEC_HEAD == 0)); then
+        ((CHECK_ONLY == 0)) && printf "declare %s -A %s%s%s\\n" "$DECLARE_SCOPE" "$PREFIX" "$DELIM" "$CURRENT_SECTION"
+        SHOWN_SEC_HEAD=1
+      fi
+
+      # If prefix is empty, but delim has been specifically set, use it.
+      if [[ -z "$PREFIX" ]]; then
+        if ((DELIM_SET == 1)); then
+          TEMP="$DELIM"
+        else
+          TEMP=""
+        fi
+      else
+        TEMP="$DELIM"
+      fi
+
+      # Output the associative array element definition.
+      if ((DUPLICATES_MERGE == 0)); then
+        ((CHECK_ONLY == 0)) && printf "%s%s%s['%s']='%s'\\n" "$PREFIX" "$TEMP" "$CURRENT_SECTION" "$KEY" "${VALUE//\'/\'\\\'\'}"
+      else
+        ((CHECK_ONLY == 0)) && printf "%s%s%s['%s']+='%s'\\n" "$PREFIX" "$TEMP" "$CURRENT_SECTION" "$KEY" "${VALUE//\'/\'\\\'\'}"
+      fi
+    else
+      ((CHECK_ONLY == 1)) && echo "${0##*/}: line $LINENUMBER: skipping line" >&2
+    fi
+  done
+
+  # Close file descriptor for INI file.
+  if ((INIFD != 1)); then
+    exec {INIFD}<&-
+  fi
+
+  # Clean up the environment.
+  unset DELIM_SET INIFILE
+
+  return "${ERROR_CODE:-0}"
+}
+
+
+# If using the above functions in a script, adjust the call to 'parse_ini' below to use your chosen options.
+parse_ini "$@"
