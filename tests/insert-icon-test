@@ -97,6 +97,7 @@ done
 
 echo -e "\n> Test message with body:"
 assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG | "$(bin_dir)"/insert-icon)"
+assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON | "$(bin_dir)"/insert-icon)"
 
 echo -e "\n> Test amended messages:"
 for message in "${!messages_amended[@]}"; do
