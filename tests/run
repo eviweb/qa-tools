@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+tests_dir()
+{
+    dirname "$(readlink -f "${BASH_SOURCE}")"
+}
+
+lib_dir()
+{
+    echo "$(tests_dir)/lib"
+}
+
+. "$(lib_dir)"/functions
+
+for testfile in "$(tests_dir)"/*-test; do
+    . "${testfile}"
+done
+
+PASSED="$((TESTS - ERRORS))"
+echo -e "-- \n${PASSED} passed tests / ${TESTS} tests - ${ERRORS} errors."
