@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - - -
+
+## [0.1.1](https://github.com/eviweb/qa-tools/compare/0.1.0..0.1.1) - 2022-04-21
+
+### Bug Fixes
+
+- **(insert-icon)** 🐛 fix command for a multiline message with an icon - ([2587e9e](https://github.com/eviweb/qa-tools/commit/2587e9ebee166d2b9fe69bc1230e629b9970a3a3)) - [@eviweb](https://github.com/eviweb)
+
+### Configuration
+
+- **(icon)** ⚙️  add typo commit type and related icon - ([1b2291d](https://github.com/eviweb/qa-tools/commit/1b2291daaa3e89d69f101f183c734e17d57f9a10)) - [@eviweb](https://github.com/eviweb)
+
+### Miscellaneous Chores
+
+- **(changelog)** 🧹 fix CHANGELOG.md format and links to author Github profile - ([0c05eac](https://github.com/eviweb/qa-tools/commit/0c05eace2828fa1b9bd48d6edf8894223047f1e4)) - [@eviweb](https://github.com/eviweb)
+- **(changelog)** 🧹 update template to follow MD rules - ([bac2acf](https://github.com/eviweb/qa-tools/commit/bac2acf6a4a3488337f7ea215398532241742c42)) - [@eviweb](https://github.com/eviweb)
+
+### Tests
+
+- **(insert-icon)** ✅ add test for a multiline commit message with an icon - ([f180c8a](https://github.com/eviweb/qa-tools/commit/f180c8a6b7d0dc2922a2711c20c5e8b86cb158cb)) - [@eviweb](https://github.com/eviweb)
+
+### Typo correction
+
+- **(config)** ✏️  correct lastname in changelog author signature - ([ff75c28](https://github.com/eviweb/qa-tools/commit/ff75c2876eea44a00f9f73317d4797aa5a72466b)) - [@eviweb](https://github.com/eviweb)
+
+- - -
+
 ## [0.1.0](https://github.com/eviweb/qa-tools/compare/92ba9397a9cec5008219a96682dd54b133570550..0.1.0) - 2022-04-21
 
 ### Configuration
