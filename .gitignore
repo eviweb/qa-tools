@@ -1,0 +1,5 @@
+!/vendor
+/.backup
+/.installed
+/templates/hooks/*
+!/templates/hooks/.gitkeep
