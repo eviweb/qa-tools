@@ -68,5 +68,8 @@ test = "✅"
 # Tool integration
 tool = "🔧"
 
+# Typo correction
+typo = "✏️ "
+
 # Work In Progress
 wip = "🚧"

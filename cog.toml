@@ -16,6 +16,7 @@ remove = { changelog_title = "Removal" }
 secfix = { changelog_title = "Security fix" }
 tool = { changelog_title = "Tooling" }
 tag = { changelog_title = "Version tag" }
+typo = { changelog_title = "Typo correction" }
 wip = { changelog_title = "Work In Progress (WIP)" }
 
 [changelog]

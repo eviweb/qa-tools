@@ -47,6 +47,7 @@ declare -A messages_noscope=(
     ["tag: lorem ipsum dolor sit amet"]="tag: 🔖 lorem ipsum dolor sit amet"
     ["test: lorem ipsum dolor sit amet"]="test: ✅ lorem ipsum dolor sit amet"
     ["tool: lorem ipsum dolor sit amet"]="tool: 🔧 lorem ipsum dolor sit amet"
+    ["typo: lorem ipsum dolor sit amet"]="typo: ✏️  lorem ipsum dolor sit amet"
     ["wip: lorem ipsum dolor sit amet"]="wip: 🚧 lorem ipsum dolor sit amet"
 )
 
@@ -74,6 +75,7 @@ declare -A messages_scope=(
     ["tag(scope): lorem ipsum dolor sit amet"]="tag(scope): 🔖 lorem ipsum dolor sit amet"
     ["test(scope): lorem ipsum dolor sit amet"]="test(scope): ✅ lorem ipsum dolor sit amet"
     ["tool(scope): lorem ipsum dolor sit amet"]="tool(scope): 🔧 lorem ipsum dolor sit amet"
+    ["typo(scope): lorem ipsum dolor sit amet"]="typo(scope): ✏️  lorem ipsum dolor sit amet"
     ["wip(scope): lorem ipsum dolor sit amet"]="wip(scope): 🚧 lorem ipsum dolor sit amet"
 )
 
