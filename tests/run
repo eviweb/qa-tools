@@ -11,10 +11,20 @@ lib_dir()
 
 . "$(lib_dir)"/functions
 
-for testfile in "$(tests_dir)"/*-test; do
-    . "${testfile}"
-    echo -e "\n----------\n"
-done
+if [ -z "$1" ]; then
+    for testfile in "$(tests_dir)"/*-test; do
+        . "${testfile}"
+        echo -e "\n----------\n"
+    done
+else
+    if [ -e "$1" ]; then
+        . "$1"
+        echo -e "\n----------\n"
+    else
+        echo "File not found: $1"
+        exit 1
+    fi
+fi
 
 PASSED="$((TESTS - ERRORS))"
 echo -e "${PASSED} passed tests / ${TESTS} tests - ${ERRORS} errors."
