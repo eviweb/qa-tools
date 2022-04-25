@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - - -
 
+## [0.1.2](https://github.com/eviweb/qa-tools/compare/0.1.1..0.1.2) - 2022-04-25
+
+### Bug Fixes
+
+- **(insert-icon)** 🐛 fix sed command to accept commit messages containing '/' - ([dfe45d6](https://github.com/eviweb/qa-tools/commit/dfe45d699f2545f794d0d91ddbc0e9a59732148c)) - [@eviweb](https://github.com/eviweb)
+
+### Miscellaneous Chores
+
+- **(test)** 🧹 now the test runner can run a unique test file - ([c3cb3ee](https://github.com/eviweb/qa-tools/commit/c3cb3eeebabeca2f399b555cbe670483a0918c5d)) - [@eviweb](https://github.com/eviweb)
+- **(test)** 🧹 fix display format of running tests - ([984d783](https://github.com/eviweb/qa-tools/commit/984d783a9b1a3f0048ef02b0706865fab410aa0e)) - [@eviweb](https://github.com/eviweb)
+
+- - -
+
+
 ## [0.1.1](https://github.com/eviweb/qa-tools/compare/0.1.0..0.1.1) - 2022-04-21
 
 ### Bug Fixes
