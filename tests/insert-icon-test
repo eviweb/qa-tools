@@ -84,7 +84,7 @@ declare -A messages_amended=(
     ["chore(scope): 🧹 lorem ipsum dolor sit amet"]="chore(scope): 🧹 lorem ipsum dolor sit amet"
 )
 
-echo -e "\e[1mInsert Icon Tests\e[21m:"
+echo -e "\e[1mInsert Icon Tests\e[0m:"
 echo -e "\n> Test messages without scope:"
 for message in "${!messages_noscope[@]}"; do
     assert_equals "${messages_noscope["${message}"]}" "$("$(bin_dir)"/insert-icon "${message}")"
