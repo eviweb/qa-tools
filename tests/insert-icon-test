@@ -84,6 +84,10 @@ declare -A messages_amended=(
     ["chore(scope): 🧹 lorem ipsum dolor sit amet"]="chore(scope): 🧹 lorem ipsum dolor sit amet"
 )
 
+declare -A bugs=(
+    ["chore(scope): lorem ipsum dolor sit/amet"]="chore(scope): 🧹 lorem ipsum dolor sit/amet"
+)
+
 echo -e "\e[1mInsert Icon Tests\e[0m:"
 echo -e "\n> Test messages without scope:"
 for message in "${!messages_noscope[@]}"; do
@@ -103,3 +107,9 @@ echo -e "\n> Test amended messages:"
 for message in "${!messages_amended[@]}"; do
     assert_equals "${messages_amended["${message}"]}" "$("$(bin_dir)"/insert-icon "${message}")"
 done
+
+echo -e "\n> Test bug fixes"
+for bug in "${!bugs[@]}"; do
+    assert_equals "${bugs["${bug}"]}" "$("$(bin_dir)"/insert-icon "${bug}")"
+done
+
