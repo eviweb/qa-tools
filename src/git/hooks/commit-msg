@@ -15,10 +15,12 @@ MESSAGE="$(cat "${COMMIT_MSG_FILE}")"
 
 [[ "${LEGACY_COMMIT_MESSAGE}" -ne 1 ]] || exit 0
 
-if "$(bin)"/cog verify "${MESSAGE}" |& grep -q "(not committed) - now"; then
-    echo "${MESSAGE}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
+result="$("$(bin)"/cog verify "${MESSAGE}" |& cat)"
+echo "$result"
 
-else 
+if echo "${result}" | grep -q "(not committed) - now"; then
+    echo "${MESSAGE}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
+else
     echo "See https://www.conventionalcommits.org/en/v1.0.0"
     exit 1
 fi

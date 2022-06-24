@@ -59,3 +59,21 @@ result="$?"
 assert_equals "0" "${result}"
 
 unlink "${commitmsgfile}"
+
+####
+echo -e "\n> Test display the cog verify success message:"
+commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
+result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep -o "(not committed) - now")"
+
+assert_equals "(not committed) - now" "${result}"
+
+unlink "${commitmsgfile}"
+
+####
+echo -e "\n> Test display the cog verify error message:"
+commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
+result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep "Caused by:")"
+
+assert_equals "Caused by:" "${result}"
+
+unlink "${commitmsgfile}"
