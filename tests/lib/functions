@@ -35,3 +35,15 @@ function assert_equals {
     
     return $result
 }
+
+# Create a temporary file with a given content
+#
+# Usage:
+#   tempfile=$(new_temp_file "Some content")
+function new_temp_file {
+    local file="$(mktemp /tmp/qa-tools-temp-XXXXXXXXXX)"
+    local content="$1"
+
+    echo "${content}" > "${file}"
+    echo "${file}"
+}
