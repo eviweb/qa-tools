@@ -34,7 +34,7 @@ bin_dir()
 echo -e "\e[1mCommit Message Hook Tests\e[0m:"
 echo -e "\n> Test with semantic commit:"
 commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
-"$(hooks_dir)"/commit-msg "${commitmsgfile}"
+"$(hooks_dir)"/commit-msg "${commitmsgfile}" &>/dev/null
 
 assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "${commitmsgfile}")"
 
@@ -43,9 +43,19 @@ unlink "${commitmsgfile}"
 ####
 echo -e "\n> Test with non semantic commit:"
 commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
-"$(hooks_dir)"/commit-msg "${commitmsgfile}"
+"$(hooks_dir)"/commit-msg "${commitmsgfile}" &>/dev/null
 result="$?"
 
 assert_equals "1" "${result}"
+
+unlink "${commitmsgfile}"
+
+####
+echo -e "\n> Test disable message checking and icon insertion:"
+commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
+LEGACY_COMMIT_MESSAGE=1 "$(hooks_dir)"/commit-msg "${commitmsgfile}" &>/dev/null
+result="$?"
+
+assert_equals "0" "${result}"
 
 unlink "${commitmsgfile}"

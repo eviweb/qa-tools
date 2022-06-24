@@ -13,6 +13,8 @@ bin()
 COMMIT_MSG_FILE="$1"
 MESSAGE="$(cat "${COMMIT_MSG_FILE}")"
 
+[[ "${LEGACY_COMMIT_MESSAGE}" -ne 1 ]] || exit 0
+
 if "$(bin)"/cog verify "${MESSAGE}" |& grep -q "(not committed) - now"; then
     echo "${MESSAGE}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
 
