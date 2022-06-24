@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - - -
 
+## [0.1.3](https://github.com/eviweb/qa-tools/compare/0.1.2..0.1.3) - 2022-06-24
+
+### Bug Fixes
+
+- **(hook)** 🐛 fix regression that prevented displaying the cog verify message - ([28d5507](https://github.com/eviweb/qa-tools/commit/28d550707985358a6b7768b05267150703a0141b)) - [@eviweb](https://github.com/eviweb)
+- **(hook)** 🐛 cog always returns status 0 so interpret the command output - ([fb6d225](https://github.com/eviweb/qa-tools/commit/fb6d22577b3bc290a50bd0d68a5ee8277b9eed10)) - [@eviweb](https://github.com/eviweb)
+
+### Features
+
+- **(hook)** ✨ allows to disable commit message checking - ([97f88af](https://github.com/eviweb/qa-tools/commit/97f88af90f6ae4b40526f0e207a0b249ecec540d)) - [@eviweb](https://github.com/eviweb)
+
+### Miscellaneous Chores
+
+- **(test)** 🧹 add new_temp_file helper function - ([5acdb4b](https://github.com/eviweb/qa-tools/commit/5acdb4b5a75a1ec38da4b9ff376ce46acdb270a5)) - [@eviweb](https://github.com/eviweb)
+
+### Tests
+
+- **(hook)** ✅ add commit-msg hook tests - ([adbc7b0](https://github.com/eviweb/qa-tools/commit/adbc7b0338baf22f16e505e6bb663b32afb75e25)) - [@eviweb](https://github.com/eviweb)
+
+- - -
+
+
 ## [0.1.2](https://github.com/eviweb/qa-tools/compare/0.1.1..0.1.2) - 2022-04-25
 
 ### Bug Fixes
