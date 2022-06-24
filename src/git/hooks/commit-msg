@@ -13,7 +13,7 @@ bin()
 COMMIT_MSG_FILE="$1"
 MESSAGE="$(cat "${COMMIT_MSG_FILE}")"
 
-if "$(bin)"/cog verify "${MESSAGE}"; then
+if "$(bin)"/cog verify "${MESSAGE}" |& grep -q "(not committed) - now"; then
     echo "${MESSAGE}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
 
 else 
