@@ -1,0 +1,51 @@
+#! /usr/bin/env bash
+tests_dir()
+{
+    dirname "$(readlink -f "${BASH_SOURCE}")"
+}
+
+lib_dir()
+{
+    echo "$(tests_dir)/lib"
+}
+
+fixtures_dir()
+{
+    echo "$(tests_dir)/fixtures"
+}
+
+hooks_dir()
+{
+    local dir="$(dirname "$(tests_dir)")"
+
+    echo "${dir}/src/git/hooks"
+}
+
+bin_dir()
+{
+    local dir="$(dirname "$(tests_dir)")"
+
+    echo "${dir}/bin"
+}
+
+. "$(lib_dir)"/functions
+
+####
+echo -e "\e[1mCommit Message Hook Tests\e[0m:"
+echo -e "\n> Test with semantic commit:"
+commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
+"$(hooks_dir)"/commit-msg "${commitmsgfile}"
+
+assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "${commitmsgfile}")"
+
+unlink "${commitmsgfile}"
+
+####
+echo -e "\n> Test with non semantic commit:"
+commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
+"$(hooks_dir)"/commit-msg "${commitmsgfile}"
+result="$?"
+
+assert_equals "1" "${result}"
+
+unlink "${commitmsgfile}"

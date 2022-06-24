@@ -1,0 +1,44 @@
+add third party libraries file
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae
+tortor dolor. Vestibulum volutpat dolor sem. Proin ut erat id urna
+cursus tristique tincidunt sit amet dolor. 
+
+Signed-off-by: Eric Villard <dev@eviweb.fr>
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+#
+# Initial commit
+#
+# Changes to be committed:
+#	new file:   thirdpartylibs.md
+#
+# Untracked files:
+#	.gitignore
+#	bin/
+#	cog.toml
+#	install.sh
+#	koji-gitmoji.toml
+#	templates/
+#	tests/
+#	vendor/
+#
+# ------------------------ >8 ------------------------
+# Do not modify or remove the line above.
+# Everything below it will be ignored.
+diff --git a/thirdpartylibs.md b/thirdpartylibs.md
+new file mode 100644
+index 0000000..d8e8360
+--- /dev/null
++++ b/thirdpartylibs.md
+@@ -0,0 +1,7 @@
++# Third Party Libraries
++
++* **Bash Ini Parser**: version [0.1.1][bash-ini-parser]
++* **Cocogitto**: version [5.1.0][cocogitto]
++
++[bash-ini-parser]: https://github.com/tadgy/bash-ini-parser
++[cocogitto]: https://github.com/cocogitto/cocogitto/releases/tag/5.1.0
