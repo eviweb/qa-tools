@@ -5,8 +5,32 @@ main()
     dirname "$(dirname "$(readlink -f "${BASH_SOURCE}")")"
 }
 
-COG="$(main)"/vendor/cocogitto/cog
+add_cog_config()
+{
+    cp "$(main)"/cog.toml "${PWD}/cog.toml"
+    sed -r "s/qa-tools/${PWD##*\/}/" -i "${PWD}/cog.toml"
+    LINK_COG_CONFIG="${PWD}/cog.toml"
+}
 
-cd "$(main)"
+add_changelog_template()
+{
+    ln -s "$(main)"/changelog.tera
+    LINK_CHANGELOG_TEMPLATE="${PWD}/changelog.tera"
+}
+
+remove_file()
+{
+    [ -n "$1" ] && unlink "$1"
+}
+
+COG="$(main)"/vendor/cocogitto/cog
+LINK_COG_CONFIG=""
+LINK_CHANGELOG_TEMPLATE=""
+
+[ -e "${PWD}/cog.toml" ] || add_cog_config
+[ -e "${PWD}/changelog.tera" ] || add_changelog_template
+
 "${COG}" "$@"
-cd "${OLDPWD}"
+
+remove_file "${LINK_COG_CONFIG}"
+remove_file "${LINK_CHANGELOG_TEMPLATE}"
