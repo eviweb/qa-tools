@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - - -
 
+## [0.1.4](https://github.com/eviweb/qa-tools/compare/0.1.3..0.1.4) - 2022-11-04
+
+### Bug Fixes
+
+- **(hook)** 🐛 icon was not included on breaking change without scope - ([f84489d](https://github.com/eviweb/qa-tools/commit/f84489d8477950cbc2d6dfba095a5b518b4ea4c7)) - [@eviweb](https://github.com/eviweb)
+
+### Features
+
+- **(cog)** ✨ make the provided cog command usable from other projects - ([ec6c476](https://github.com/eviweb/qa-tools/commit/ec6c476807ca5b44ddec6be741914319adb377e2)) - [@eviweb](https://github.com/eviweb)
+
+- - -
+
+
 ## [0.1.3](https://github.com/eviweb/qa-tools/compare/0.1.2..0.1.3) - 2022-06-24
 
 ### Bug Fixes
