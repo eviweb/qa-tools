@@ -32,6 +32,7 @@ declare -A messages_noscope=(
     ["deprecate: lorem ipsum dolor sit amet"]="deprecate: ⚠️ lorem ipsum dolor sit amet"
     ["docs: lorem ipsum dolor sit amet"]="docs: 📚 lorem ipsum dolor sit amet"
     ["feat: lorem ipsum dolor sit amet"]="feat: ✨ lorem ipsum dolor sit amet"
+    ["feat!: lorem ipsum dolor sit amet"]="feat!: ✨ lorem ipsum dolor sit amet"
     ["fix: lorem ipsum dolor sit amet"]="fix: 🐛 lorem ipsum dolor sit amet"
     ["init: lorem ipsum dolor sit amet"]="init: 🎉 lorem ipsum dolor sit amet"
     ["lang: lorem ipsum dolor sit amet"]="lang: 🌐 lorem ipsum dolor sit amet"
@@ -60,6 +61,7 @@ declare -A messages_scope=(
     ["deprecate(scope): lorem ipsum dolor sit amet"]="deprecate(scope): ⚠️ lorem ipsum dolor sit amet"
     ["docs(scope): lorem ipsum dolor sit amet"]="docs(scope): 📚 lorem ipsum dolor sit amet"
     ["feat(scope): lorem ipsum dolor sit amet"]="feat(scope): ✨ lorem ipsum dolor sit amet"
+    ["feat(scope)!: lorem ipsum dolor sit amet"]="feat(scope)!: ✨ lorem ipsum dolor sit amet"
     ["fix(scope): lorem ipsum dolor sit amet"]="fix(scope): 🐛 lorem ipsum dolor sit amet"
     ["init(scope): lorem ipsum dolor sit amet"]="init(scope): 🎉 lorem ipsum dolor sit amet"
     ["lang(scope): lorem ipsum dolor sit amet"]="lang(scope): 🌐 lorem ipsum dolor sit amet"
@@ -82,6 +84,7 @@ declare -A messages_scope=(
 declare -A messages_amended=(
     ["chore: 🧹 lorem ipsum dolor sit amet"]="chore: 🧹 lorem ipsum dolor sit amet"
     ["chore(scope): 🧹 lorem ipsum dolor sit amet"]="chore(scope): 🧹 lorem ipsum dolor sit amet"
+    ["chore(scope)!: 🧹 lorem ipsum dolor sit amet"]="chore(scope)!: 🧹 lorem ipsum dolor sit amet"
 )
 
 declare -A bugs=(

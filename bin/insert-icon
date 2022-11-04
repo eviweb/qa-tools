@@ -24,7 +24,7 @@ eval "$("$(bin)"/parse-ini "${CONFIG}")"
 
 MESSAGE="$(get_input "$1")"
 HEADER="$(echo "${MESSAGE}" | head -n 1)"
-TYPE="$(echo "${HEADER}" | grep -Poe '^[^(:]+')"
+TYPE="$(echo "${HEADER}" | grep -Poe '^[^(:!]+')"
 ICON="${INI_commit_type_icons["${TYPE}"]}"
 
 if ! echo "${HEADER}" | grep "${ICON}" &>/dev/null; then
