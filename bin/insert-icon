@@ -12,10 +12,10 @@ main()
 
 get_input()
 {
-    if test ! -t 0; then
-        cat
-    else
+    if [[ -n "$1" ]]; then
         echo "$1"
+    else
+        cat
     fi
 }
 
