@@ -61,6 +61,16 @@ assert_equals "0" "${result}"
 unlink "${commitmsgfile}"
 
 ####
+echo -e "\n> Test disable message checking via git config (repo-scoped):"
+commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
+git config --local hook.legacyCommitMessage true
+"$(hooks_dir)"/commit-msg "${commitmsgfile}" &>/dev/null
+result="$?"
+git config --local --unset hook.legacyCommitMessage
+assert_equals "0" "${result}"
+unlink "${commitmsgfile}"
+
+####
 echo -e "\n> Test display the cog verify success message:"
 commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
 result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep -o "(not committed) - now")"

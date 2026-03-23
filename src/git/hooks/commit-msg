@@ -13,7 +13,14 @@ bin()
 COMMIT_MSG_FILE="$1"
 MESSAGE="$(cat "${COMMIT_MSG_FILE}")"
 
-[[ "${LEGACY_COMMIT_MESSAGE}" -ne 1 ]] || exit 0
+# Check git config first (repo-scoped), fall back to env var (legacy / backward compat)
+_legacy="$(git config --get hook.legacyCommitMessage 2>/dev/null)"
+if [[ -z "$_legacy" ]]; then
+    [[ "${LEGACY_COMMIT_MESSAGE:-0}" -ne 1 ]] || exit 0
+else
+    [[ "$_legacy" != "true" ]] || exit 0
+fi
+unset _legacy
 
 result="$("$(bin)"/cog verify "${MESSAGE}" |& cat)"
 echo "$result"

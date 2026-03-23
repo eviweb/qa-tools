@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - - -
 
+## [Unreleased]
+
+### Features
+
+- **(hook)** ✨ add repo-scoped legacy mode via `git config hook.legacyCommitMessage true` with backward-compatible fallback on `LEGACY_COMMIT_MESSAGE` env var
+
+### Tests
+
+- **(hook)** ✅ add test for repo-scoped legacy mode via git config
+
+- - -
+
 ## [0.1.4](https://github.com/eviweb/qa-tools/compare/0.1.3..0.1.4) - 2022-11-04
 
 ### Bug Fixes
