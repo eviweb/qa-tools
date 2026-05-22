@@ -11,7 +11,10 @@ bin()
 }
 
 COMMIT_MSG_FILE="$1"
-MESSAGE="$(cat "${COMMIT_MSG_FILE}")"
+FULL_CONTENT="$(cat "${COMMIT_MSG_FILE}")"
+# Strip git template: remove scissors section (verbose diff) then comment lines.
+# Passed only to cog verify to avoid "Argument list too long" on large templates.
+MESSAGE="$(echo "${FULL_CONTENT}" | sed '/^# .*>8.*/,$d' | grep -v '^#')"
 
 # Check git config first (repo-scoped), fall back to env var (legacy / backward compat)
 _legacy="$(git config --get hook.legacyCommitMessage 2>/dev/null)"
@@ -26,7 +29,7 @@ result="$("$(bin)"/cog verify "${MESSAGE}" |& cat)"
 echo "$result"
 
 if echo "${result}" | grep -q "(not committed) - now"; then
-    echo "${MESSAGE}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
+    echo "${FULL_CONTENT}" | "$(bin)"/insert-icon > "${COMMIT_MSG_FILE}"
 else
     echo "See https://www.conventionalcommits.org/en/v1.0.0"
     exit 1

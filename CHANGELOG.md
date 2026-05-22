@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- **(hook)** 🐛 strip git template comments and scissors section before passing message to `cog verify` to prevent "Argument list too long" on large commit templates
+- **(insert-icon)** 🐛 replace `echo | head -n 1` with bash parameter expansion to avoid broken pipe error on multi-line messages
+
 ### Features
 
 - **(hook)** ✨ add repo-scoped legacy mode via `git config hook.legacyCommitMessage true` with backward-compatible fallback on `LEGACY_COMMIT_MESSAGE` env var
