@@ -1,0 +1,68 @@
+#! /usr/bin/env bash
+tests_dir()
+{
+    dirname "$(readlink -f "${BASH_SOURCE}")"
+}
+
+lib_dir()
+{
+    echo "$(tests_dir)/lib"
+}
+
+bin_dir()
+{
+    local dir="$(dirname "$(tests_dir)")"
+
+    echo "${dir}/bin"
+}
+
+vendor_dir()
+{
+    local dir="$(dirname "$(tests_dir)")"
+
+    echo "${dir}/vendor/cocogitto"
+}
+
+. "$(lib_dir)"/functions
+
+####
+echo -e "\e[1mCog Wrapper Tests\e[0m:"
+
+####
+echo -e "\n> Test arch-specific binary is selected for current architecture ($(uname -m)):"
+expected_binary="$(vendor_dir)/cog-$(uname -m)"
+assert_equals "1" "$([ -x "${expected_binary}" ] && echo 1 || echo 0)" \
+    "vendor/cocogitto/cog-$(uname -m) exists and is executable"
+
+####
+echo -e "\n> Test cog wrapper does not exit with 'no binary' error for current architecture:"
+result="$("$(bin_dir)"/cog --version 2>&1 || true)"
+assert_equals "0" "$(echo "${result}" | grep -c 'no cog binary available')" \
+    "cog does not report missing binary for current architecture $(uname -m)"
+
+####
+echo -e "\n> Test cog fails with a clear error on unsupported architecture:"
+fake_uname_dir="$(mktemp -d /tmp/qa-tools-fake-uname-XXXXXXXXXX)"
+trap 'rm -rf "${fake_uname_dir}"' EXIT INT TERM
+
+cat > "${fake_uname_dir}/uname" << 'EOF'
+#!/usr/bin/env bash
+if [ "$1" = "-m" ]; then
+    echo "riscv64"
+else
+    /usr/bin/uname "$@"
+fi
+EOF
+chmod +x "${fake_uname_dir}/uname"
+
+result="$(PATH="${fake_uname_dir}:${PATH}" "$(bin_dir)"/cog --version 2>&1 || true)"
+exit_code="$(PATH="${fake_uname_dir}:${PATH}" "$(bin_dir)"/cog --version 2>/dev/null; echo $?)"
+
+assert_equals "1" "${exit_code}" "cog exits 1 on unsupported architecture"
+assert_equals "1" "$(echo "${result}" | grep -c 'riscv64')" \
+    "cog error message includes the unsupported architecture name"
+assert_equals "1" "$(echo "${result}" | grep -c 'no cog binary available')" \
+    "cog error message mentions 'no cog binary available'"
+
+trap - EXIT INT TERM
+rm -rf "${fake_uname_dir}"

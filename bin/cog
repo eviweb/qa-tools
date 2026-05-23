@@ -23,9 +23,15 @@ remove_file()
     [ -n "$1" ] && unlink "$1"
 }
 
-COG="$(main)"/vendor/cocogitto/cog
+ARCH="$(uname -m)"
+COG="$(main)"/vendor/cocogitto/cog-"${ARCH}"
 LINK_COG_CONFIG=""
 LINK_CHANGELOG_TEMPLATE=""
+
+if [ ! -x "${COG}" ]; then
+    echo "Error: no cog binary available for architecture ${ARCH}" >&2
+    exit 1
+fi
 
 [ -e "${PWD}/cog.toml" ] || add_cog_config
 [ -e "${PWD}/changelog.tera" ] || add_changelog_template

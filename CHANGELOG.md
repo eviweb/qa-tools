@@ -13,14 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **(hook)** 🐛 strip git template comments and scissors section before passing message to `cog verify` to prevent "Argument list too long" on large commit templates
 - **(insert-icon)** 🐛 replace `echo | head -n 1` with bash parameter expansion to avoid broken pipe error on multi-line messages
+- **(cog)** 🐛 fail with a clear error message when no binary is available for the current architecture
 
 ### Features
 
 - **(hook)** ✨ add repo-scoped legacy mode via `git config hook.legacyCommitMessage true` with backward-compatible fallback on `LEGACY_COMMIT_MESSAGE` env var
+- **(cog)** ✨ select architecture-specific cog binary via `uname -m` (aarch64, x86_64)
 
 ### Tests
 
 - **(hook)** ✅ add test for repo-scoped legacy mode via git config
+- **(cog)** ✅ add tests for architecture-specific binary selection and missing-arch error handling
 
 - - -
 
