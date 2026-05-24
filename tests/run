@@ -11,13 +11,17 @@ lib_dir()
 
 . "$(lib_dir)"/functions
 
+_start_ms=$(date +%s%3N)
+
 if [ -z "$1" ]; then
     for testfile in "$(tests_dir)"/*-test; do
+        CURRENT_TEST_FILE="$(basename "${testfile}")"
         . "${testfile}"
         echo -e "\n----------\n"
     done
 else
     if [ -e "$1" ]; then
+        CURRENT_TEST_FILE="$(basename "$1")"
         . "$1"
         echo -e "\n----------\n"
     else
@@ -26,5 +30,24 @@ else
     fi
 fi
 
-PASSED="$((TESTS - ERRORS))"
-echo -e "${PASSED} passed tests / ${TESTS} tests - ${ERRORS} errors."
+_end_ms=$(date +%s%3N)
+_duration_ms=$(( _end_ms - _start_ms ))
+
+PASSED="$((TESTS - ERRORS - SKIPPED))"
+echo -e "${PASSED} passed / ${SKIPPED} skipped / ${ERRORS} failed — ${TESTS} tests in ${_duration_ms}ms"
+
+if [ "${ERRORS}" -gt 0 ]; then
+    echo -e "\nFailed tests:"
+    declare -A _by_file=()
+    for _entry in "${FAILED_TESTS[@]}"; do
+        _file="${_entry%%|*}"
+        _test="${_entry#*|}"
+        _by_file["${_file}"]+="${_test}"$'\n'
+    done
+    for _file in $(printf '%s\n' "${!_by_file[@]}" | sort); do
+        echo -e "\n  \e[1m${_file}\e[0m:"
+        while IFS= read -r _test; do
+            [ -n "${_test}" ] && echo -e "    \e[31m\u2718\e[0m ${_test}"
+        done < <(echo "${_by_file[${_file}]}" | sort)
+    done
+fi

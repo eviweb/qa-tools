@@ -30,15 +30,22 @@ bin_dir()
 
 . "$(lib_dir)"/functions
 
+_cog_available=0
+"$(bin_dir)"/cog --version &>/dev/null 2>&1 && _cog_available=1
+
 ####
 echo -e "\e[1mCommit Message Hook Tests\e[0m:"
 echo -e "\n> Test with semantic commit:"
-commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
-"$(hooks_dir)"/commit-msg "${commitmsgfile}" &>/dev/null
+if [ "${_cog_available}" -eq 1 ]; then
+    commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
+    "$(hooks_dir)"/commit-msg "${commitmsgfile}" &>/dev/null
 
-assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "${commitmsgfile}")"
+    assert_equals "$(cat "$(fixtures_dir)"/COMMIT_EDITMSG_WITH_ICON)" "$(cat "${commitmsgfile}")"
 
-unlink "${commitmsgfile}"
+    unlink "${commitmsgfile}"
+else
+    skip_test "cog not executable on $(uname -m) — semantic commit icon insertion"
+fi
 
 ####
 echo -e "\n> Test with non semantic commit:"
@@ -72,18 +79,26 @@ unlink "${commitmsgfile}"
 
 ####
 echo -e "\n> Test display the cog verify success message:"
-commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
-result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep -o "(not committed) - now")"
+if [ "${_cog_available}" -eq 1 ]; then
+    commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/COMMIT_EDITMSG")")"
+    result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep -o "(not committed) - now")"
 
-assert_equals "(not committed) - now" "${result}"
+    assert_equals "(not committed) - now" "${result}"
 
-unlink "${commitmsgfile}"
+    unlink "${commitmsgfile}"
+else
+    skip_test "cog not executable on $(uname -m) — cog verify success message"
+fi
 
 ####
 echo -e "\n> Test display the cog verify error message:"
-commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
-result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep "Caused by:")"
+if [ "${_cog_available}" -eq 1 ]; then
+    commitmsgfile="$(new_temp_file "$(cat "$(fixtures_dir)/NOT_SEMANTIC_COMMIT_EDITMSG")")"
+    result="$("$(hooks_dir)"/commit-msg "${commitmsgfile}" |& grep "Caused by:")"
 
-assert_equals "Caused by:" "${result}"
+    assert_equals "Caused by:" "${result}"
 
-unlink "${commitmsgfile}"
+    unlink "${commitmsgfile}"
+else
+    skip_test "cog not executable on $(uname -m) — cog verify error message"
+fi

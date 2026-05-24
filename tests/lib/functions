@@ -1,13 +1,16 @@
 #! /usr/bin/env bash
 
-[ -n "${ERRORS}" ] || export ERRORS="${ERRORS:-0}"
-[ -n "${TESTS}" ] || export TESTS="${TESTS:-0}"
+[ -n "${ERRORS}" ]  || export ERRORS="${ERRORS:-0}"
+[ -n "${TESTS}" ]   || export TESTS="${TESTS:-0}"
+[ -n "${SKIPPED}" ] || export SKIPPED="${SKIPPED:-0}"
+[[ -v FAILED_TESTS ]] || declare -ag FAILED_TESTS=()
+CURRENT_TEST_FILE="${CURRENT_TEST_FILE:-}"
 
 # Assert two strings are equal
 #
 # Usage:
 #   assert_equals "string 1" "string 2" "message"
-function assert_equals {    
+function assert_equals {
     local string1="$1"
     local string2="$2"
     local message="$3"
@@ -21,19 +24,33 @@ function assert_equals {
         message="Assert \e[34m'${string1}'\e[0m equals \e[35m'${string2}'\e[0m."
     }
 
-    local diff="$(diff  <(echo "${string1}" ) <(echo "${string2}"))"
+    local diff
+    diff="$(diff <(echo "${string1}") <(echo "${string2}"))"
 
     if [ -z "${diff}" ]; then
         echo -e "\e[32m${succeed}\e[0m ${message}"
     else
         ((ERRORS++))
-
+        local clean_message
+        clean_message="$(echo -e "${message}" | sed 's/\x1b\[[0-9;]*m//g')"
+        FAILED_TESTS+=("${CURRENT_TEST_FILE:-?}|${clean_message}")
         result=1
         echo -e "\e[31m${fails}\e[0m ${message}"
         echo -e "\e[2m${diff}\e[22m"
     fi
-    
+
     return $result
+}
+
+# Skip a test with a reason
+#
+# Usage:
+#   skip_test "reason"
+function skip_test {
+    local message="$1"
+    ((TESTS++))
+    ((SKIPPED++))
+    echo -e "\e[33m\u25cb\e[0m ${message} \e[2m[skipped]\e[0m"
 }
 
 # Create a temporary file with a given content
@@ -41,9 +58,9 @@ function assert_equals {
 # Usage:
 #   tempfile=$(new_temp_file "Some content")
 function new_temp_file {
-    local file="$(mktemp /tmp/qa-tools-temp-XXXXXXXXXX)"
+    local file
+    file="$(mktemp /tmp/qa-tools-temp-XXXXXXXXXX)"
     local content="$1"
-
     echo "${content}" > "${file}"
     echo "${file}"
 }
