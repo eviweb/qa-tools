@@ -42,27 +42,11 @@ assert_equals "0" "$(echo "${result}" | grep -c 'no cog binary available')" \
 
 ####
 echo -e "\n> Test cog fails with a clear error on unsupported architecture:"
-fake_uname_dir="$(mktemp -d /tmp/qa-tools-fake-uname-XXXXXXXXXX)"
-trap 'rm -rf "${fake_uname_dir}"' EXIT INT TERM
-
-cat > "${fake_uname_dir}/uname" << 'EOF'
-#!/usr/bin/env bash
-if [ "$1" = "-m" ]; then
-    echo "riscv64"
-else
-    /usr/bin/uname "$@"
-fi
-EOF
-chmod +x "${fake_uname_dir}/uname"
-
-result="$(PATH="${fake_uname_dir}:${PATH}" "$(bin_dir)"/cog --version 2>&1 || true)"
-exit_code="$(PATH="${fake_uname_dir}:${PATH}" "$(bin_dir)"/cog --version 2>/dev/null; echo $?)"
+result="$(COG_ARCH_OVERRIDE=riscv64 "$(bin_dir)"/cog --version 2>&1 || true)"
+exit_code="$(COG_ARCH_OVERRIDE=riscv64 "$(bin_dir)"/cog --version 2>/dev/null; echo $?)"
 
 assert_equals "1" "${exit_code}" "cog exits 1 on unsupported architecture"
 assert_equals "1" "$(echo "${result}" | grep -c 'riscv64')" \
     "cog error message includes the unsupported architecture name"
 assert_equals "1" "$(echo "${result}" | grep -c 'no cog binary available')" \
     "cog error message mentions 'no cog binary available'"
-
-trap - EXIT INT TERM
-rm -rf "${fake_uname_dir}"

@@ -23,7 +23,7 @@ remove_file()
     [ -n "$1" ] && unlink "$1"
 }
 
-ARCH="$(uname -m)"
+ARCH="${COG_ARCH_OVERRIDE:-$(uname -m)}"
 COG="$(main)"/vendor/cocogitto/cog-"${ARCH}"
 LINK_COG_CONFIG=""
 LINK_CHANGELOG_TEMPLATE=""
