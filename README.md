@@ -1,5 +1,7 @@
 # Quality Tools
 
+[![CI](https://github.com/eviweb/qa-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/eviweb/qa-tools/actions/workflows/ci.yml)
+
 This package provides a set of tools to ensure a level of quality and productivity adapted to the current state of the art in development.
 
 ## Install

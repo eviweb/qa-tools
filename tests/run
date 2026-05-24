@@ -36,6 +36,8 @@ _duration_ms=$(( _end_ms - _start_ms ))
 PASSED="$((TESTS - ERRORS - SKIPPED))"
 echo -e "${PASSED} passed / ${SKIPPED} skipped / ${ERRORS} failed — ${TESTS} tests in ${_duration_ms}ms"
 
+[ "${ERRORS}" -eq 0 ]
+
 if [ "${ERRORS}" -gt 0 ]; then
     echo -e "\nFailed tests:"
     declare -A _by_file=()

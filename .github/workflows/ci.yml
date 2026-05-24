@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shellcheck
+        # severity=error: catches only blocking issues; raise to warning once
+        # pre-existing warnings in vendored/legacy scripts are addressed
+        run: |
+          shellcheck -x --severity=error \
+            bin/cog bin/insert-icon bin/parse-ini install.sh \
+            src/git/hooks/commit-msg \
+            tests/run tests/cog-test tests/commit-msg-hook-test \
+            tests/insert-icon-test tests/lib/functions
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install libgit2
+        run: sudo apt-get install -y --no-install-recommends libgit2-dev
+
+      - name: Run test suite
+        run: tests/run
