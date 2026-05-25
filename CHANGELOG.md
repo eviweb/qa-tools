@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **(install)** detect libgit2 availability at install time; prompt to auto-install via `pkg` (Termux), `apt-get` (Debian/Ubuntu), or show manual instructions for other systems
+
 ### Bug Fixes
 
 - **(hook)** 🐛 strip git template comments and scissors section before passing message to `cog verify` to prevent "Argument list too long" on large commit templates

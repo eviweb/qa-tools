@@ -65,6 +65,56 @@ backup_git_config()
 	done
 }
 
+_detect_package_manager()
+{
+	if [ -n "${TERMUX_VERSION:-}" ] || [ -d "/data/data/com.termux" ]; then
+		echo "termux"
+	elif command -v apt-get &>/dev/null; then
+		echo "apt"
+	else
+		echo "unknown"
+	fi
+}
+
+_try_install()
+{
+	local -a cmd=("$@")
+	printf "  Run: %s\n  Install now? [y/N] " "${cmd[*]}" >&2
+	local answer
+	read -r answer </dev/tty
+	if [[ "${answer,,}" == "y" ]]; then
+		"${cmd[@]}" || {
+			echo "Error: installation failed — install libgit2 manually and re-run." >&2
+			return 1
+		}
+	else
+		echo "  Skipped. The commit-msg hook will not validate messages until libgit2 is installed." >&2
+	fi
+}
+
+check_cog_dependency()
+{
+	"$(main_dir)"/bin/cog --version &>/dev/null 2>&1 && return 0
+
+	echo "" >&2
+	echo "Warning: cog cannot run — libgit2 is missing." >&2
+	echo "  The commit-msg hook requires libgit2 to validate commit messages." >&2
+
+	case "$(_detect_package_manager)" in
+		termux)
+			_try_install pkg install libgit2
+			;;
+		apt)
+			_try_install sudo apt-get install -y libgit2-dev
+			;;
+		*)
+			echo "  Install libgit2 for your system then re-run this installer." >&2
+			echo "  See: https://libgit2.org/" >&2
+			;;
+	esac
+	echo "" >&2
+}
+
 link_hooks()
 {
 	for hook in "$(main_dir)"/src/git/hooks/*; do
@@ -114,6 +164,7 @@ install()
 
 	backup
 	link_hooks
+	check_cog_dependency
 	install_git
 	touch "${INSTALLED_FILE}"
 }
