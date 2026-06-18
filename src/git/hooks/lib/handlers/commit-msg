@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+_bin() {
+    local dir
+    dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"  # handlers/
+    dir="$(dirname "${dir}")"                               # lib/
+    dir="$(dirname "${dir}")"                               # hooks/
+    dir="$(dirname "${dir}")"                               # git/
+    dir="$(dirname "${dir}")"                               # src/
+    dir="$(dirname "${dir}")"                               # qa-tools root
+    echo "${dir}/bin"
+}
+
+BIN="${QA_TOOLS_BIN:-$(_bin)}"
+
+COMMIT_MSG_FILE="$1"
+FULL_CONTENT="$(cat "${COMMIT_MSG_FILE}")"
+# Strip git template: remove scissors section (verbose diff) then comment lines.
+# Passed only to cog verify to avoid "Argument list too long" on large templates.
+MESSAGE="$(echo "${FULL_CONTENT}" | sed '/^# .*>8.*/,$d' | grep -v '^#')"
+
+# Check git config first (repo-scoped), fall back to env var (legacy / backward compat)
+_legacy="$(git config --get hook.legacyCommitMessage 2>/dev/null)"
+if [[ -z "$_legacy" ]]; then
+    [[ "${LEGACY_COMMIT_MESSAGE:-0}" -ne 1 ]] || exit 0
+else
+    [[ "$_legacy" != "true" ]] || exit 0
+fi
+unset _legacy
+
+result="$("${BIN}"/cog verify "${MESSAGE}" |& cat)"
+echo "$result"
+
+if echo "${result}" | grep -q "(not committed) - now"; then
+    echo "${FULL_CONTENT}" | "${BIN}"/insert-icon > "${COMMIT_MSG_FILE}"
+else
+    echo "See https://www.conventionalcommits.org/en/v1.0.0"
+    exit 1
+fi
