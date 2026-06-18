@@ -15,6 +15,10 @@ By using the `-t` flag, it configures globally `Git` to use the [Git Templates](
 > * both [Git Hooks](#git-hooks) and [Git Templates](#git-templates) features are mutually exclusive.
 > * already existing `Git` configuration are saved in order to be restored during uninstallation.
 
+### Dependencies
+
+* **libgit2** — required by `cocogitto`. The install script detects its presence and offers to install it automatically (`pkg` on Termux, `apt-get` on Debian/Ubuntu) or prints instructions for other systems.
+
 ## Uninstall
 
 Run `./install.sh -u`.
@@ -36,6 +40,14 @@ By default the hooks are the same as the ones provided by `Git` except for the f
   The integration of this feature relies on the git configuration setting [core.hooksPath][core.hooksPath], set globally.
 
   > Additional types and icons were grandly inspired by the work of [Danny FRITZ (@dannyfritz)][danny-fritz] and [Danny (@its-danny)][danny].
+
+  To disable commit message validation for a specific repository (e.g. when working with a legacy commit style), set the repo-scoped git config:
+
+  ```bash
+  git config hook.legacyCommitMessage true
+  ```
+
+  Alternatively, set the environment variable `LEGACY_COMMIT_MESSAGE=1` before running `git commit`.
 
 ### Git Templates
 

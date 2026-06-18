@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- - -
+
+## [0.1.5](https://github.com/eviweb/qa-tools/compare/0.1.4..0.1.5) - 2026-06-18
+
 ### Added
 
 - **(install)** detect libgit2 availability at install time; prompt to auto-install via `pkg` (Termux), `apt-get` (Debian/Ubuntu), or show manual instructions for other systems
@@ -19,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(insert-icon)** 🐛 replace `echo | head -n 1` with bash parameter expansion to avoid broken pipe error on multi-line messages
 - **(cog)** 🐛 fail with a clear error message when no binary is available for the current architecture
 
+### CI
+
+- add GitHub Actions workflow with lint and test jobs
+
 ### Features
 
 - **(hook)** ✨ add repo-scoped legacy mode via `git config hook.legacyCommitMessage true` with backward-compatible fallback on `LEGACY_COMMIT_MESSAGE` env var
@@ -28,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **(hook)** ✅ add test for repo-scoped legacy mode via git config
 - **(cog)** ✅ add tests for architecture-specific binary selection and missing-arch error handling
+- **(runner)** ✅ add duration reporting, failed test summary, and architecture-aware skip support
 
 - - -
 
