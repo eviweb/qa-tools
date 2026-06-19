@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- - -
+
+## [0.2.0](https://github.com/eviweb/qa-tools/compare/0.1.5..0.2.0) - 2026-06-19
+
 ### Documentation
 
 - **(hooks)** 📚 add git hooks lifecycle reference (`docs/git-hooks-lifecycle.md`) covering all 28 hooks and their execution order per git operation
