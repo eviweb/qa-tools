@@ -1,0 +1,192 @@
+#! /usr/bin/env bash
+tests_dir()
+{
+    dirname "$(readlink -f "${BASH_SOURCE}")"
+}
+
+lib_dir()
+{
+    echo "$(tests_dir)/lib"
+}
+
+hooks_dir()
+{
+    local dir="$(dirname "$(tests_dir)")"
+
+    echo "${dir}/src/git/hooks"
+}
+
+. "$(lib_dir)"/functions
+
+DISPATCHER="$(hooks_dir)/lib/dispatcher.sh"
+HANDLERS_DIR="$(hooks_dir)/lib/handlers"
+TEST_HOOK="__dispatcher_test_hook__"
+TEST_HANDLER="${HANDLERS_DIR}/${TEST_HOOK}"
+
+# Creates an isolated temporary git repository, prints its path
+new_temp_repo()
+{
+    local dir
+    dir="$(mktemp -d /tmp/qa-tools-dispatcher-test-XXXXXXXXXX)"
+    git init -q "${dir}"
+    echo "${dir}"
+}
+
+# Writes an executable script at $1 that appends $2 to logfile $3, exiting $4 (default 0)
+write_marker_hook()
+{
+    local path="$1" label="$2" log="$3" exit_code="${4:-0}"
+    mkdir -p "$(dirname "${path}")"
+    cat > "${path}" <<SCRIPT
+#!/usr/bin/env bash
+echo "${label}" >> "${log}"
+exit ${exit_code}
+SCRIPT
+    chmod +x "${path}"
+}
+
+# Runs dispatch for TEST_HOOK with the given repo as cwd
+run_dispatch()
+{
+    local repo="$1"; shift
+    (cd "${repo}" && . "${DISPATCHER}" && dispatch "${TEST_HOOK}" "$@")
+}
+
+####
+echo -e "\e[1mDispatcher Tests\e[0m:"
+
+####
+echo -e "\n> Test local before hook runs before the global handler:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.before" "before" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'before\nglobal')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test 'before.<hook>' is equivalent to '<hook>.before':"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/before.${TEST_HOOK}" "before" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'before\nglobal')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test local after hook runs after the global handler:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.after" "after" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'global\nafter')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test 'after.<hook>' is equivalent to '<hook>.after':"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/after.${TEST_HOOK}" "after" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'global\nafter')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test no-suffix local hook defaults to after:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}" "no-suffix" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'global\nno-suffix')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test both naming formats coexist for the before position:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.before" "before-suffix" "${log}"
+write_marker_hook "${repo}/.git/hooks/before.${TEST_HOOK}" "before-prefix" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'before-suffix\nbefore-prefix\nglobal')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test after-position precedence: '.after' then 'after.' then no-suffix:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.after" "after-suffix" "${log}"
+write_marker_hook "${repo}/.git/hooks/after.${TEST_HOOK}" "after-prefix" "${log}"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}" "no-suffix" "${log}"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+run_dispatch "${repo}" &>/dev/null
+assert_equals "$(printf 'global\nafter-suffix\nafter-prefix\nno-suffix')" "$(cat "${log}")"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test a failing before hook stops the chain:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.before" "before" "${log}" 1
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.after" "after" "${log}"
+run_dispatch "${repo}" &>/dev/null
+result="$?"
+assert_equals "1" "${result}" "dispatch propagates the before hook's exit code"
+assert_equals "before" "$(cat "${log}")" "global handler and after hook were not run"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test a failing global handler stops the chain:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}" 1
+write_marker_hook "${repo}/.git/hooks/${TEST_HOOK}.after" "after" "${log}"
+run_dispatch "${repo}" &>/dev/null
+result="$?"
+assert_equals "1" "${result}" "dispatch propagates the global handler's exit code"
+assert_equals "global" "$(cat "${log}")" "after hook was not run"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test failing local hook is identified by path in stderr:"
+repo="$(new_temp_repo)"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+hook_path="${repo}/.git/hooks/${TEST_HOOK}.before"
+write_marker_hook "${hook_path}" "before" "${log}" 1
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+result="$(run_dispatch "${repo}" 2>&1)"
+assert_equals "1" "$(echo "${result}" | grep -c "${hook_path}")" \
+    "stderr mentions the failing local hook's path"
+rm -rf "${repo}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test failing global handler is identified by path in stderr:"
+repo="$(new_temp_repo)"
+write_marker_hook "${TEST_HANDLER}" "global" "/dev/null" 1
+result="$(run_dispatch "${repo}" 2>&1)"
+assert_equals "1" "$(echo "${result}" | grep -c "${TEST_HANDLER}")" \
+    "stderr mentions the failing global handler's path"
+rm -rf "${repo}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test dispatcher still runs the global handler outside a git repository:"
+log="$(mktemp /tmp/qa-tools-dispatcher-log-XXXXXXXXXX)"
+write_marker_hook "${TEST_HANDLER}" "global" "${log}"
+non_git_dir="$(mktemp -d /tmp/qa-tools-dispatcher-nogit-XXXXXXXXXX)"
+GIT_CEILING_DIRECTORIES="${non_git_dir}" run_dispatch "${non_git_dir}" &>/dev/null
+assert_equals "global" "$(cat "${log}")" "global handler ran even without a git repository"
+rm -rf "${non_git_dir}" "${log}" "${TEST_HANDLER}"
+
+####
+echo -e "\n> Test anti-recursion guard short-circuits a re-entrant stub call:"
+stub="$(hooks_dir)/commit-msg"
+result="$(_QA_TOOLS_DISPATCHING=1 "${stub}" /nonexistent-commit-msg-file 2>&1)"
+exit_code="$(_QA_TOOLS_DISPATCHING=1 "${stub}" /nonexistent-commit-msg-file &>/dev/null; echo $?)"
+assert_equals "0" "${exit_code}" "stub exits 0 immediately when already dispatching"
+assert_equals "" "${result}" "stub produces no output when the re-entry guard triggers"

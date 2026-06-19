@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **(hooks)** ✨ introduce global dispatcher: all 28 git-documented hooks now present as dispatcher stubs; `.sample` files removed
 - **(hooks)** ✨ enable per-repository local hooks in `.git/hooks/` with explicit ordering — `<hook>.before` / `before.<hook>` run before the global handler, `<hook>.after` / `after.<hook>` or `<hook>` (no suffix, default) run after
+- **(hooks)** ✨ identify the failing local hook or qa-tools handler by its resolved absolute path on stderr instead of a bare exit code
+
+### Tests
+
+- **(hooks)** ✅ add dispatcher test suite: before/after execution order, both naming formats, no-suffix default-to-after behaviour, exit code propagation, failing-hook identification, behaviour outside a git repository, and the anti-recursion guard
 
 - - -
 

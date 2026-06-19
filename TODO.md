@@ -4,11 +4,11 @@
 
 ### Dispatcher reliability
 
-- [ ] Add dedicated dispatcher tests: before/after execution order, both naming
+- [x] Add dedicated dispatcher tests: before/after execution order, both naming
   formats (`<hook>.before`/`before.<hook>`, `<hook>.after`/`after.<hook>`),
   no-suffix default-to-after behaviour, exit code propagation, anti-recursion
   guard
-- [ ] Identify the failing local hook in error output (e.g.
+- [x] Identify the failing local hook in error output (e.g.
   `local hook .git/hooks/commit-msg.before exited 1`) instead of a bare exit
   code
 

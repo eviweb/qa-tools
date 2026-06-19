@@ -8,12 +8,29 @@ _QA_TOOLS_ROOT="$(dirname "$(dirname "$(dirname "$(dirname "${_QA_DISPATCHER_DIR
 export QA_TOOLS_BIN="${_QA_TOOLS_ROOT}/bin"
 
 # Run a local hook if it exists and is executable.
-# Returns 0 if the hook is absent; propagates the hook's exit code otherwise.
+# Returns 0 if the hook is absent; propagates the hook's exit code otherwise,
+# reporting the failing hook's path on stderr.
 _qa_run_local() {
     local h="${1}/${2}"
     shift 2
     if [[ -x "${h}" ]]; then
         "${h}" "$@"
+        local status=$?
+        [[ ${status} -eq 0 ]] || echo "Error: local hook failed: $(readlink -f "${h}") (exit ${status})" >&2
+        return "${status}"
+    fi
+}
+
+# Run the qa-tools global handler if it exists and is executable.
+# Reports the handler's path on stderr if it fails.
+_qa_run_global() {
+    local h="$1"
+    shift
+    if [[ -x "${h}" ]]; then
+        "${h}" "$@"
+        local status=$?
+        [[ ${status} -eq 0 ]] || echo "Error: qa-tools handler failed: ${h} (exit ${status})" >&2
+        return "${status}"
     fi
 }
 
@@ -32,9 +49,7 @@ dispatch() {
         _qa_run_local "${_local_dir}" "before.${hook}" "$@" || return $?
     fi
 
-    if [[ -x "${_global_handler}" ]]; then
-        "${_global_handler}" "$@" || return $?
-    fi
+    _qa_run_global "${_global_handler}" "$@" || return $?
 
     if [[ -n "${_local_dir}" ]]; then
         _qa_run_local "${_local_dir}" "${hook}.after" "$@" || return $?
