@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **(hooks)** 📚 add git hooks lifecycle reference (`docs/git-hooks-lifecycle.md`) covering all 28 hooks and their execution order per git operation
+- **(hooks)** 📚 add local hooks management guide (`docs/local-hooks.md`) documenting the before/after naming convention, exit code propagation, and usage examples
+
+### Features
+
+- **(hooks)** ✨ introduce global dispatcher: all 28 git-documented hooks now present as dispatcher stubs; `.sample` files removed
+- **(hooks)** ✨ enable per-repository local hooks in `.git/hooks/` with explicit ordering — `<hook>.before` / `before.<hook>` run before the global handler, `<hook>.after` / `after.<hook>` or `<hook>` (no suffix, default) run after
+
 - - -
 
 ## [0.1.5](https://github.com/eviweb/qa-tools/compare/0.1.4..0.1.5) - 2026-06-18

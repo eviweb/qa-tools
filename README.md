@@ -27,27 +27,56 @@ Run `./install.sh -u`.
 
 ### Git Hooks
 
-By default the hooks are the same as the ones provided by `Git` except for the following ones:
+All [28 git-documented hooks][githooks-doc] are registered globally via a dispatcher configured through [core.hooksPath][core.hooksPath].
 
-* `commit-msg`: this hook:  
-  
-  * ensures that the committed message follows the [Conventional Commits][conventional-commits] specification.
-  * ensures that the commited message is enhanced by an icon corresponding to its type.  
-    > Please refer to the `[commit_type_icons]` section of the [config.toml][config.toml] file to see or change icons.
-  * allows a bunch of additional types.
-    > Please refer to the `[commit_types]` section of the [cog.toml][cog.toml] file to see or change these additional types.
+#### commit-msg
 
-  The integration of this feature relies on the git configuration setting [core.hooksPath][core.hooksPath], set globally.
+The `commit-msg` hook:
 
-  > Additional types and icons were grandly inspired by the work of [Danny FRITZ (@dannyfritz)][danny-fritz] and [Danny (@its-danny)][danny].
+* ensures that the committed message follows the [Conventional Commits][conventional-commits] specification.
+* ensures that the committed message is enhanced by an icon corresponding to its type.  
+  > Please refer to the `[commit_type_icons]` section of the [config.toml][config.toml] file to see or change icons.
+* allows a bunch of additional types.  
+  > Please refer to the `[commit_types]` section of the [cog.toml][cog.toml] file to see or change these additional types.
 
-  To disable commit message validation for a specific repository (e.g. when working with a legacy commit style), set the repo-scoped git config:
+> Additional types and icons were grandly inspired by the work of [Danny FRITZ (@dannyfritz)][danny-fritz] and [Danny (@its-danny)][danny].
 
-  ```bash
-  git config hook.legacyCommitMessage true
-  ```
+To disable commit message validation for a specific repository (e.g. when working with a legacy commit style), set the repo-scoped git config:
 
-  Alternatively, set the environment variable `LEGACY_COMMIT_MESSAGE=1` before running `git commit`.
+```bash
+git config hook.legacyCommitMessage true
+```
+
+Alternatively, set the environment variable `LEGACY_COMMIT_MESSAGE=1` before running `git commit`.
+
+#### Per-repository local hooks
+
+Each hook dispatches in order: **local before** → **global handler** → **local after**.
+
+Local hooks are placed in `.git/hooks/` of the target repository. Two naming formats are accepted and can be combined:
+
+| File | Runs |
+|---|---|
+| `<hook>.before` or `before.<hook>` | before the global handler |
+| `<hook>.after` or `after.<hook>` | after the global handler |
+| `<hook>` (no suffix) | after the global handler (default) |
+
+Example — run a project linter before the global `commit-msg` validation:
+
+```bash
+# .git/hooks/commit-msg.before
+#!/usr/bin/env bash
+set -euo pipefail
+./scripts/lint-commit-msg.sh "$1"
+```
+
+```bash
+chmod +x .git/hooks/commit-msg.before
+```
+
+No registration needed — the dispatcher picks up local hooks automatically.
+
+> See [docs/local-hooks.md][local-hooks] for the full reference and [docs/git-hooks-lifecycle.md][hooks-lifecycle] for the execution order of all 28 hooks.
 
 ### Git Templates
 
@@ -70,6 +99,9 @@ This project is licensed under the terms of the [MIT License][license].
 [core.hooksPath]: https://git-scm.com/docs/githooks
 [danny]: https://github.com/dannyfritz/commit-message-emoji/blob/master/README.md
 [danny-fritz]: https://github.com/dannyfritz/commit-message-emoji/blob/master/README.md
+[githooks-doc]: https://git-scm.com/docs/githooks
+[hooks-lifecycle]: ./docs/git-hooks-lifecycle.md
 [init.templateDir]: https://git-scm.com/docs/git-init#_template_directory
 [license]: ./LICENSE
+[local-hooks]: ./docs/local-hooks.md
 [thirdpartylibs]: ./thirdpartylibs.md
